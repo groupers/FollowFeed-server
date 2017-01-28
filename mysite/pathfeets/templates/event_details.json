@@ -1,0 +1,11 @@
+{
+  "title" : "{{ event.title }}",
+  "token" : "{{ event.token }}",
+  "start time" : "{{ event.start }}",
+  "end time": "{{ event.stop }}",
+  "path" : [ {% for p in positions %}
+      {"longitude" : {{ p.longitude }},
+      "latitude" : {{ p.latitude }},
+      "timestamp" : "{{ p.timestamp.strftime('%Y-%m-%d %H:%M')}}"}, 
+  {% endfor %}]
+}
