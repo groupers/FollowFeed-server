@@ -12,3 +12,13 @@ def details(request, token):
     context = {'event' : event, 'positions' : positions}
     return render(request, 'event_details.json', context)
     # return HttpResponse(str([(e.timestamp, e.longitude, e.latitude) for e in positions]))
+
+def receive_gps_coord(request):
+	data = request.POST
+
+	event_id = data['event_id']
+	event = Event(id=event_id)
+	pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'])
+	pos.save()
+
+	return HttpResponse("Success");
