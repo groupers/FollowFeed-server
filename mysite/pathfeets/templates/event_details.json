@@ -6,6 +6,6 @@
   "path" : [ {% for p in positions %}
       {"longitude" : {{ p.longitude }},
       "latitude" : {{ p.latitude }},
-      "timestamp" : "{{ p.timestamp.strftime('%Y-%m-%d %H:%M')}}"}, 
+      "timestamp" : "{{ p.timestamp|date:"Y-m-d H:m" }}"}, 
   {% endfor %}]
 }
