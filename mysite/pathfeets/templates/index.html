@@ -184,6 +184,14 @@
         shadowSize:  [41, 41]
     });
 
+    var hereIcon = L.icon({
+        iconUrl: '/static/leaflet/images/here.png',
+        iconSize:    [25, 25],
+        iconAnchor:  [12, 12],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28]
+    });
+
     </script>
 
     <script>
@@ -372,6 +380,21 @@
 	    channel.bind('{{event.id}}', function(data) {
 	    	$("#chatfeed").html($("#chatfeed").html() + data.message + '<br>');
 	    });
+
+
+	    // My position
+	    var my_pos = L.marker([0,0], {icon : hereIcon});
+
+	    function update_pos(pos) {
+	    	var crd = pos.coords;
+	    	my_pos.setLatLng([crd.latitude, crd.longitude]).addTo(map);
+	    }
+	    navigator.geolocation.getCurrentPosition(update_pos);
+	    setInterval(function() {
+		    navigator.geolocation.getCurrentPosition(update_pos);
+		}, 60 * 1000);
+
+	    
 
         // // Search
         // $("#search_btn").click(function() {
