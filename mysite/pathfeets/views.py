@@ -46,6 +46,7 @@ def randToken():
     a = '0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
     return "".join([random.choice(a) for _ in range(10)])
 
+@csrf_exempt
 def receive_gps_coord(request):
     data = request.POST
 
