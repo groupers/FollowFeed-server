@@ -1,0 +1,4 @@
+{
+  "id" : "{{ event.id }}",
+  "url" : "http://followfeed.pythonanywhere.com/event/{{event.token}}/" 
+}
