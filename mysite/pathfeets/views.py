@@ -28,3 +28,14 @@ def create_event(request):
 def randToken():
     a = '123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
     return "".join([random.choice(a) for _ in range(10)])
+    # return HttpResponse(str([(e.timestamp, e.longitude, e.latitude) for e in positions]))
+
+def receive_gps_coord(request):
+	data = request.POST
+
+	event_id = data['event_id']
+	event = Event(id=event_id)
+	pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'])
+	pos.save()
+
+	return HttpResponse("Success");
