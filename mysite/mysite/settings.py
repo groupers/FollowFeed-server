@@ -120,3 +120,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 STATIC_ROOT = 'pathfeets/static/'
 STATIC_URL = '/static/'
+
+if 'pythonanywhere' in os.environ:
+    SECURE_SSL_REDIRECT = True
