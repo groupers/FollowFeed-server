@@ -29,7 +29,9 @@
 	<script src="/static/leaflet/leaflet.js"></script>
     <script src="/static/js/moment.js"></script>
     <script src="/static/js/tempusdominus.min.js"></script>
-    <script src="https://js.pusher.com/3.2/pusher.min.js"></script>
+<!--     <script src="https://js.pusher.com/3.2/pusher.min.js"></script> -->
+    <script src="https://js.pusher.com/platform/latest/pusher-platform.js"></script>
+
 
     <link href="/static/css/new-age-bg.css" rel="stylesheet">
 
@@ -405,16 +407,32 @@
           }
         });
 
-        var pusher = new Pusher('e063970a13a7cd349f09', {
-	      cluster: 'eu',
-	      encrypted: true
-	    });
+     //    var pusher = new Pusher('e063970a13a7cd349f09', {
+	    //   cluster: 'eu',
+	    //   encrypted: true
+	    // });
 
-	    var channel = pusher.subscribe('my-channel');
+	    var app = new PusherPlatform.App({
+		  appId: 'c709096b-7a54-46c9-a541-062b350e13fa',
+		});
 
-	    channel.bind('{{event.id}}', function(data) {
-	    	$("#chatfeed").html($("#chatfeed").html() + data.message + '<br>');
-	    });
+		var channel = app.feed('feed_{{event.id}}');
+
+		channel.subscribe({
+			lastEventId: "0",
+		  onOpen: () => console.log('Connection established'),
+		  onItem: function(data) {
+		  			console.log(data);
+			    	$("#chatfeed").html($("#chatfeed").html() + data.body.message + '<br>');
+			    },
+		  onError: error => console.error('Error:', error),
+});
+
+	   //  var channel = pusher.subscribe('my-channel');
+
+	    // channel.bind('{{event.id}}', function(data) {
+	    // 	$("#chatfeed").html($("#chatfeed").html() + data.message + '<br>');
+	    // });
 
 
 	    // My position

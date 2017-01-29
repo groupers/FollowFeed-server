@@ -8,6 +8,8 @@ from .models import Event, Position, PlannedPosition
 import random
 from django.core import serializers
 import pusher
+import requests
+
 
 pusher_client = pusher.Pusher(
   app_id='295609',
@@ -90,6 +92,12 @@ def delete_planned_pos(request):
 def new_chat_msg(request):
     data = request.POST
 
-    pusher_client.trigger('my-channel', str(data['id']), {'message': data['msg']})
+    pusher_url = "https://api.private-beta-1.pusherplatform.com:443/apps/c709096b-7a54-46c9-a541-062b350e13fa/feeds/feed_%s"%(data['id'])
+
+    payload = "{\"items\":[{\"message\":\"" + data['msg'] + "\"}]}"
+
+    response = requests.request("POST", pusher_url, data=payload)
+
+    # pusher_client.trigger('my-channel', str(data['id']), {'message': data['msg']})
 
     return HttpResponse("")
