@@ -25,7 +25,7 @@ SECRET_KEY = '0mnhj^8#c#dis9436!yoxa)4ji8jn+jn$c9t3bkn!e0jrsn)@s'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["followfeed.pythonanywhere.com"]
+ALLOWED_HOSTS = ["127.0.0.1", "followfeed.pythonanywhere.com"]
 
 
 # Application definition
