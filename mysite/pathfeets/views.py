@@ -7,6 +7,15 @@ from datetime import datetime
 from .models import Event, Position, PlannedPosition
 import random
 from django.core import serializers
+import pusher
+
+pusher_client = pusher.Pusher(
+  app_id='295609',
+  key='e063970a13a7cd349f09',
+  secret='9677abe4331996b7670f',
+  cluster='eu',
+  ssl=True
+)
 
 def index(request):
     return HttpResponse("needs to be made")
@@ -66,5 +75,13 @@ def delete_planned_pos(request):
     data = request.POST
     planned_pos = PlannedPosition(id=int(data['id']))
     planned_pos.delete()
+
+    return HttpResponse("")
+
+@csrf_exempt
+def new_chat_msg(request):
+    data = request.POST
+
+    pusher_client.trigger('my-channel', 'my-event', {'message': data['msg']})
 
     return HttpResponse("")
