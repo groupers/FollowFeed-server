@@ -29,7 +29,7 @@ def event(request, token):
 
 def details(request, token):
     event = Event.objects.get(token=token)
-    positions = Position.objects.filter(event=event)
+    positions = Position.objects.filter(event=event).order_by('timestamp', 'pk')
     context = {'event' : event, 'positions' : positions}
     return render(request, 'event_details.json', context)
 
@@ -43,16 +43,15 @@ def create_event(request):
         return render(request, 'create_event.json', context)
 
 def randToken():
-    a = '123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
+    a = '0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
     return "".join([random.choice(a) for _ in range(10)])
-    # return HttpResponse(str([(e.timestamp, e.longitude, e.latitude) for e in positions]))
 
 def receive_gps_coord(request):
     data = request.POST
 
     event_id = data['event_id']
     event = Event(id=event_id)
-    pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'])
+    pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'], timestamp=datetime.now())
     pos.save()
 
     return HttpResponse("Success");

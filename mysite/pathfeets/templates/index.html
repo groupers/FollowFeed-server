@@ -206,12 +206,40 @@
         var map = L.map('map', {"layers": [tile]});
 
         // *** GPS LAYER *** //
-		var gps_path = L.polyline(gps, {color: "#3333dd"});
-        var current_pos_marker = L.marker(gps[gps.length - 1]);
+		var gps_path = L.polyline([], {color: "#3333dd"});
+        var current_pos_marker = L.marker([0, 0]);
         var gps_layer = L.layerGroup([gps_path, current_pos_marker]);
-        map.addLayer(gps_layer);
-        current_pos_marker.bindPopup("<b>Current position</b><br>More info?")
-                       .openPopup();
+
+        function update_gps(data) {
+        	var path = JSON.parse(data).path;
+        	var gps = [];
+        	for (i=0; i<path.length; i++) {
+        		gps.push([path[i].latitude, path[i].longitude])
+        	}
+        	var lid = gps_layer.getLayerId(gps_path);
+        	gps_layer.removeLayer(lid);
+        	gps_path = L.polyline(gps, {color: "#3333dd"});
+        	gps_layer.addLayer(gps_path);
+
+
+        	var lid = gps_layer.getLayerId(current_pos_marker);
+        	gps_layer.removeLayer(lid);
+        	current_pos_marker = L.marker(gps[gps.length-1]);
+        	gps_layer.addLayer(current_pos_marker);
+
+        	map.addLayer(gps_layer);
+        	current_pos_marker.bindPopup("<b>Current position</b>").openPopup();
+        }
+
+        function call_gps()  {
+        	$.get('/api/event/{{ event.token }}/', '', function(data){
+        		update_gps(data);
+        	})
+        }
+        setInterval(function() {
+		    call_gps();
+		}, 5 * 1000);
+		call_gps();
 
         // *** PLANNED PATH LAYER *** //
         var planned_data = [];
@@ -254,7 +282,8 @@
         
 
         // *** ZOOM MAP TO CORRECT LOCATION AND ZOOM LEVEL *** //
-		map.fitBounds(gps_path.getBounds());
+		//map.fitBounds(gps_path.getBounds());
+		map.locate({setView: true, maxZoom: 16});
 
         // *** ADD TO MAP *** //
         var add_to_map_popup = L.marker((0,0), {icon : planIcon});
