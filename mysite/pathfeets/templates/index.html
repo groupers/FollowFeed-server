@@ -72,10 +72,10 @@
         			"Currently live!"
                     </center>
         			<br><br>
-
+<!-- 
                     <h6>Search</h6>
                     <input id="search" type="text" class="form-control" value="St Johns College" placeholder="Place or address...">
-                    <button style="margin-top:3px" id="search_btn" type="button" class="btn btn-sm btn-primary">Take me there</button>
+                    <button style="margin-top:3px" id="search_btn" type="button" class="btn btn-sm btn-primary">Take me there</button> -->
         			
         		</div>
         	</div>
@@ -214,7 +214,7 @@
             new_marker.bindPopup(marker_string);
 
             var d = new Date('{{ p.timestamp|date:"Y-m-d H:m:s"  }}');
-            planned_data.push({latlng:[{{p.latitude}}, {{p.longitude}}], id:layer_id, date: d});
+            planned_data.push({ latlng:[{{p.latitude}}, {{p.longitude}}], id:layer_id, date: d, db_id:"{{p.id}}" });
          {% endfor %}
 
         if (planned_path.getLayers().length >= 2) {
@@ -269,7 +269,8 @@
 
             for (i=0; i<planned_data.length; i++) {
                 if (planned_data[i].id == id) {
-                    delete planned_data.splice(i, 1);
+                	$.post('/api/del_planned_pos/', {id : planned_data[i].db_id} );              	
+                    planned_data.splice(i, 1);
                 }
             }
 
@@ -315,13 +316,18 @@
             map.addLayer(planned_path);
 
             // Store in db
-            console.log(form_date);
-            $.post('/api/make_planned_pos/',
-                    {event_id : event_id,
-                     title : $('#path_marker_title').val(),
-                     timestamp : form_date,
-                     longitude : latlng.lng,
-                     latitude : latlng.lat })
+            $.post('/api/make_planned_pos/', {event_id : event_id,
+		                     title : $('#path_marker_title').val(),
+		                     timestamp : form_date,
+		                     longitude : latlng.lng,
+		                     latitude : latlng.lat },
+     				 function(data) {
+                     	for (i=0; i<planned_data.length; i++) {
+                     		if (planned_data[i].id == layer_id) {
+                     			data.db_id = data;
+                     		}
+                     	};
+                    });
 
             // Clean up
             $('#path_marker_title').val("");
@@ -337,22 +343,22 @@
           }
         });
 
-        // Search
-        $("#search_btn").click(function() {
-            latlng = map.getCenter();
-            latlng_str = latlng.lat.toString() + "," + latlng.lng.toString();
-            console.log(latlng_str);
+        // // Search
+        // $("#search_btn").click(function() {
+        //     latlng = map.getCenter();
+        //     latlng_str = latlng.lat.toString() + "," + latlng.lng.toString();
+        //     console.log(latlng_str);
 
-            $.ajax({
-                 url:"https://maps.googleapis.com/maps/api/place/nearbysearch/json",
-                 dataType: 'json',
-                 data : {"location":latlng_str,
-                         "keyword":$("#search").val(),
-                         "key": google_api_key,
-                         "radius":10000},
-                 jsonpCallback: "localJsonpCallback" 
-             });
-        });
+        //     $.ajax({
+        //          url:"https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+        //          dataType: 'json',
+        //          data : {"location":latlng_str,
+        //                  "keyword":$("#search").val(),
+        //                  "key": google_api_key,
+        //                  "radius":10000},
+        //          jsonpCallback: "localJsonpCallback" 
+        //      });
+        // });
     </script>
 
 </body>
