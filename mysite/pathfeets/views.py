@@ -21,7 +21,7 @@ def details(request, token):
 def create_event(request):
     if request.method == 'POST':
         data = request.POST
-        new_event = Event(title=data['title'], token=randToken(), start=data['start'], stop=data['stop'])
+        new_event = Event(title=data['title'], token=randToken(), start=datetime.strptime(data['start'], r'%Y-%m-%d %H:%M'), stop=datetime.strptime(data['stop'], r'%Y-%m-%d %H:%M'))
         new_event.save()
         context = {'event' : new_event}
         return render(request, 'create_event.json', context)
