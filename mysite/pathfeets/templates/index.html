@@ -29,6 +29,7 @@
 	<script src="/static/leaflet/leaflet.js"></script>
     <script src="/static/js/moment.js"></script>
     <script src="/static/js/tempusdominus.min.js"></script>
+    <script src="https://js.pusher.com/3.2/pusher.min.js"></script>
 
 	<style>
         html body {background-color:#eee}
@@ -72,6 +73,11 @@
         			"Currently live!"
                     </center>
         			<br><br>
+
+        			<h6>Chat feed</h6>
+        			<small><center><div id="chatfeed">
+
+        			</div></center></small>
 <!-- 
                     <h6>Search</h6>
                     <input id="search" type="text" class="form-control" value="St Johns College" placeholder="Place or address...">
@@ -89,7 +95,12 @@
                     <div class="col-lg-12">
                 	    <div id='map'></div>
                         <br>
-                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                        <div class="col-lg-2">
+                        	<a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                        </div>
+                        <div class="col-lg-offset-1 col-lg-9">
+                        	<input id="chat_field" type="text" class="form-control" placeholder="Enter a message... and press enter...">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -339,9 +350,28 @@
           if (keyCode === 13) { 
             e.preventDefault();
             $("#add_element_btn").click();
-            return false;
           }
         });
+
+        $('#chat_field').on('keypress', function(e) {
+          var keyCode = e.keyCode || e.which;
+          if (keyCode === 13) { 
+            e.preventDefault();
+        	$.post('/api/chat/', {msg : $('#chat_field').val()});
+        	$('#chat_field').val("");
+          }
+        });
+
+        var pusher = new Pusher('e063970a13a7cd349f09', {
+	      cluster: 'eu',
+	      encrypted: true
+	    });
+
+	    var channel = pusher.subscribe('my-channel');
+
+	    channel.bind('my-event', function(data) {
+	    	$("#chatfeed").html($("#chatfeed").html() + data.message + '<br>');
+	    });
 
         // // Search
         // $("#search_btn").click(function() {
