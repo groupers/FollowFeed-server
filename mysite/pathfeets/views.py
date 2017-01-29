@@ -2,16 +2,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 # from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-<<<<<<< HEAD
 from .models import Event, Position, PlannedPosition
 from datetime import datetime
-=======
 from .models import Event, Position
 import random
-
 from django.core import serializers
-from django.views.decorators.csrf import csrf_exempt
->>>>>>> e0aa5a7dd3cac10e0556f0dd9a6653acb00174d2
 
 def index(request):
     return HttpResponse("path index")
