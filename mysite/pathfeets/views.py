@@ -52,7 +52,7 @@ def receive_gps_coord(request):
 
     event_id = data['event_id']
     event = Event(id=event_id)
-    pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'], timestamp=datetime.now())
+    pos = Position(event=event, latitude=data['latitude'], longitude=data['longitude'], timestamp=datetime.now())
     pos.save()
 
     return HttpResponse("Success");
