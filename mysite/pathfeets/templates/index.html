@@ -13,22 +13,22 @@
     <title>Pathfeets</title>
 
     <!-- Bootstrap Core -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom CSS -->
-    <link href="css/simple-sidebar.css" rel="stylesheet">
-    <link href="css/tempusdominus-bootstrap-3.min.css" rel="stylesheet">
+    <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+    <link href="/static/css/tempusdominus-bootstrap-3.min.css" rel="stylesheet">
     <!-- Leaflet -->
-    <link rel="stylesheet" href="leaflet/leaflet.css" />
+    <link rel="stylesheet" href="/static/leaflet/leaflet.css" />
 
     <!-- jQuery -->
-    <script src="js/jquery.js"></script>
+    <script src="/static/js/jquery.js"></script>
 
     <!-- Bootstrap Core JavaScript -->
-    <script src="js/bootstrap.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
 
-	<script src="leaflet/leaflet.js"></script>
-    <script src="js/moment.js"></script>
-    <script src="js/tempusdominus.min.js"></script>
+	<script src="/static/leaflet/leaflet.js"></script>
+    <script src="/static/js/moment.js"></script>
+    <script src="/static/js/tempusdominus.min.js"></script>
 
 	<style>
         html body {background-color:#eee}
@@ -45,6 +45,7 @@
     <![endif]-->
 
     <script>
+        var event_id = {{event.id}};
         var planned_path_color = "#aaa";
         var google_api_key = "AIzaSyD4UV-ESnvozNVMkwbImwzcNPOy5Dcug_8";
     	var base = [52.204348, 0.119639];
@@ -65,9 +66,11 @@
         	<h4>Pathfeets</h4>
 
         		<div class="col-offset-1 col-lg-11">
-        			<h5>{{Path name}}</h5>
-        			<small><b>{{start}} - {{end}}</b></small>
-        			{{description}}
+        			<h5>{{event.title}}</h5>
+        			<center><small><b>{{ event.start|date:"Y-m-d H:m" }}<br>---<br>
+                    {{event.stop|date:"Y-m-d H:m" }}</b></small>
+        			"Currently live!"
+                    </center>
         			<br><br>
 
                     <h6>Search</h6>
@@ -160,9 +163,9 @@
     });
 
     var planIcon = L.icon({
-        iconUrl: 'leaflet/images/marker-icon-gray.png',
-        iconRetinaUrl: 'leaflet/images/marker-icon-gray-2x.png',
-        shadowUrl:     'leaflet/images/marker-shadow.png',
+        iconUrl: '/static/leaflet/images/marker-icon-gray.png',
+        iconRetinaUrl: '/static/leaflet/images/marker-icon-gray-2x.png',
+        shadowUrl:     '/static/leaflet/images/marker-shadow.png',
         iconSize:    [25, 41],
         iconAnchor:  [12, 41],
         popupAnchor: [1, -34],
@@ -188,15 +191,31 @@
         var current_pos_marker = L.marker(gps[gps.length - 1]);
         var gps_layer = L.layerGroup([gps_path, current_pos_marker]);
         map.addLayer(gps_layer);
-        current_pos_marker.bindPopup("<b>{{Person name}}</b><br>{{venue | if at venue}}")
+        current_pos_marker.bindPopup("<b>Current position</b><br>More info?")
                        .openPopup();
 
         // *** PLANNED PATH LAYER *** //
         var planned_data = [];
-
         var planned_poly_line = L.polyline([], {color: planned_path_color});
         var planned_path = L.layerGroup([planned_poly_line]);
         var planned_poly_line_id = planned_path.getLayerId(planned_poly_line);
+
+         {% for p in planned %}
+            var new_marker = L.marker([{{p.latitude}}, {{p.longitude}}], {icon : planIcon});
+            new_marker.addTo(planned_path);
+            var layer_id = planned_path.getLayerId(new_marker);
+
+            var marker_string = "";
+            {% if p.title|length %}
+                marker_string += "<b>{{ p.title }}</b> <br>";
+            {% endif %}
+            marker_string += '{{ p.timestamp|date:"Y-m-d H:m"  }}';
+            marker_string += "<br><small><a href=\"#\" onclick=\"delete_marker_layer(" + layer_id.toString() + ")\">Remove</a></small>"
+            new_marker.bindPopup(marker_string);
+
+            var d = new Date('{{ p.timestamp|date:"Y-m-d H:m:s"  }}');
+            planned_data.push({latlng:[{{p.latitude}}, {{p.longitude}}], id:layer_id, date: d});
+         {% endfor %}
 
         if (planned_path.getLayers().length >= 2) {
                 map.addLayer(planned_path);
@@ -268,6 +287,7 @@
             planned_path.removeLayer(planned_poly_line_id);
             planned_poly_line_id = planned_path.getLayerId(planned_poly_line);
         }
+        redraw_planned_path();
 
         $("#add_element_btn").click(function(e) {
             e.preventDefault();
@@ -275,10 +295,6 @@
             latlng = add_to_map_popup.getLatLng();
             var d = new Date();
             var form_date = $('#datetimepicker').data().date + ":" + d.getSeconds().toString(); // add seconds for sorting purpose
-
-            console.log(  $('#path_marker_title').val() );
-            console.log(  form_date ); // send this to database
-            console.log( latlng );
 
             var new_marker = L.marker(latlng, {icon : planIcon});
             new_marker.addTo(planned_path);
@@ -297,6 +313,15 @@
             redraw_planned_path();
 
             map.addLayer(planned_path);
+
+            // Store in db
+            console.log(form_date);
+            $.post('/api/make_planned_pos/',
+                    {event_id : event_id,
+                     title : $('#path_marker_title').val(),
+                     timestamp : form_date,
+                     longitude : latlng.lng,
+                     latitude : latlng.lat })
 
             // Clean up
             $('#path_marker_title').val("");
