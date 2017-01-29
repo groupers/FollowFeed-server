@@ -31,8 +31,9 @@
     <script src="/static/js/tempusdominus.min.js"></script>
     <script src="https://js.pusher.com/3.2/pusher.min.js"></script>
 
+    <link href="/static/css/new-age-bg.css" rel="stylesheet">
+
 	<style>
-        html body {background-color:#eee}
         #sidebar-wrapper {background-color:#ccc}
         #map { height: 85vh; width: 80vw; }
         label {font-size:12px;}
@@ -64,13 +65,12 @@
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
         	<div class="col-lg-12">
-        	<h4>Pathfeets</h4>
 
+        		<center><img src="/static/logo2.png" width="90%"/></center>
         		<div class="col-offset-1 col-lg-11">
-        			<h5>{{event.title}}</h5>
+        			<h3>{{event.title}}</h3>
         			<center><small><b>{{ event.start|date:"Y-m-d H:m" }}<br>---<br>
                     {{event.stop|date:"Y-m-d H:m" }}</b></small>
-        			"Currently live!"
                     </center>
         			<br><br>
 
@@ -85,7 +85,6 @@
                     <button style="margin-top:3px" id="search_btn" type="button" class="btn btn-sm btn-primary">Take me there</button> -->
         			
         		</div>
-        		<center><img style="margin-top:50px" src="/static/logo_small.png" width="90%"/></center>
         	</div>
 
 
@@ -216,6 +215,9 @@
 
         function update_gps(data) {
         	var path = JSON.parse(data).path;
+        	if (path.length == 0) {
+        		return false;
+        	}
         	var gps = [];
         	for (i=0; i<path.length; i++) {
         		gps.push([path[i].latitude, path[i].longitude])

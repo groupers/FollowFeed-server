@@ -1,5 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 # from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from .models import Event, Position, PlannedPosition
@@ -18,7 +18,7 @@ pusher_client = pusher.Pusher(
 )
 
 def index(request):
-    return HttpResponse("needs to be made")
+    return render(request, 'landing.html')
 
 def event(request, token):
     event = Event.objects.get(token=token)
@@ -37,10 +37,18 @@ def details(request, token):
 def create_event(request):
     if request.method == 'POST':
         data = request.POST
-        new_event = Event(title=data['title'], token=randToken(), start=datetime.strptime(data['start'], r'%Y-%m-%d %H:%M'), stop=datetime.strptime(data['stop'], r'%Y-%m-%d %H:%M'))
-        new_event.save()
-        context = {'event' : new_event}
-        return render(request, 'create_event.json', context)
+        if 'start' in data:
+            new_event = Event(title=data['title'], token=randToken(), 
+                start=datetime.strptime(data['start'], r'%Y-%m-%d %H:%M'), 
+                stop=datetime.strptime(data['stop'], r'%Y-%m-%d %H:%M'))
+            new_event.save()
+            context = {'event' : new_event}
+            return render(request, 'create_event.json', context)
+        else:
+            new_event = Event(title=data['title'], token=randToken(), 
+            start=datetime.now(), stop=datetime.now())
+            new_event.save()
+            return redirect('/event/%s/'%(new_event.token))
 
 def randToken():
     a = '0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ'
