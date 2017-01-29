@@ -82,6 +82,6 @@ def delete_planned_pos(request):
 def new_chat_msg(request):
     data = request.POST
 
-    pusher_client.trigger('my-channel', 'my-event', {'message': data['msg']})
+    pusher_client.trigger('my-channel', str(data['id']), {'message': data['msg']})
 
     return HttpResponse("")

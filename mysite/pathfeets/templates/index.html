@@ -357,7 +357,7 @@
           var keyCode = e.keyCode || e.which;
           if (keyCode === 13) { 
             e.preventDefault();
-        	$.post('/api/chat/', {msg : $('#chat_field').val()});
+        	$.post('/api/chat/', {msg : $('#chat_field').val(), id : {{ event.id }} });
         	$('#chat_field').val("");
           }
         });
@@ -369,7 +369,7 @@
 
 	    var channel = pusher.subscribe('my-channel');
 
-	    channel.bind('my-event', function(data) {
+	    channel.bind('{{event.id}}', function(data) {
 	    	$("#chatfeed").html($("#chatfeed").html() + data.message + '<br>');
 	    });
 
