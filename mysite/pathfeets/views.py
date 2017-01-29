@@ -4,12 +4,19 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import Event, Position, PlannedPosition
 from datetime import datetime
-from .models import Event, Position
+from .models import Event, Position, PlannedPosition
 import random
 from django.core import serializers
 
 def index(request):
-    return HttpResponse("path index")
+    return HttpResponse("needs to be made")
+
+def event(request, token):
+    event = Event.objects.get(token=token)
+    planned = PlannedPosition.objects.filter(event=event)
+
+    context = {'event':event, 'planned':planned}
+    return render(request, 'index.html', context)
 
 def details(request, token):
     event = Event.objects.get(token=token)
@@ -32,24 +39,24 @@ def randToken():
     # return HttpResponse(str([(e.timestamp, e.longitude, e.latitude) for e in positions]))
 
 def receive_gps_coord(request):
-	data = request.POST
+    data = request.POST
 
-	event_id = data['event_id']
-	event = Event(id=event_id)
-	pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'])
-	pos.save()
+    event_id = data['event_id']
+    event = Event(id=event_id)
+    pos = Position(event=event, latitude=data['latitude'], longtitude=data['longtitude'])
+    pos.save()
 
-	return HttpResponse("Success");
+    return HttpResponse("Success");
 
 @csrf_exempt
 def make_planned_pos(request):
-	data = request.POST
+    data = request.POST
 
-	event_id = data['event_id']
-	event = Event(id=event_id)
-	planned_pos = PlannedPosition(event=event, title=data['title'],
-				timestamp=datetime.strptime(data['timestamp'], r'%Y-%m-%d %H:%M'),
-				longitude=data['longitude'], latitude=data['latitude'])
-	planned_pos.save()
+    event_id = data['event_id']
+    event = Event(id=event_id)
+    planned_pos = PlannedPosition(event=event, title=data['title'],
+                timestamp=datetime.strptime(data['timestamp'], r'%Y-%m-%d %H:%M:%S'),
+                longitude=data['longitude'], latitude=data['latitude'])
+    planned_pos.save()
 
-	return HttpResponse("Success");
+    return HttpResponse("Success");

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- <meta name="viewport" content="width=device-width, shrink-to-fit=no, initial-scale=1"> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Pathfeets</title>
+
+    <!-- Bootstrap Core -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/simple-sidebar.css" rel="stylesheet">
+    <link href="/static/css/tempusdominus-bootstrap-3.min.css" rel="stylesheet">
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="/static/leaflet/leaflet.css" />
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+	<script src="/static/leaflet/leaflet.js"></script>
+    <script src="/static/js/moment.js"></script>
+    <script src="/static/js/tempusdominus.min.js"></script>
+
+	<style>
+        html body {background-color:#eee}
+        #sidebar-wrapper {background-color:#ccc}
+        #map { height: 85vh; width: 80vw; }
+        label {font-size:12px;}
+    </style>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <script>
+        var event_id = {{event.id}};
+        var planned_path_color = "#aaa";
+        var google_api_key = "AIzaSyD4UV-ESnvozNVMkwbImwzcNPOy5Dcug_8";
+    	var base = [52.204348, 0.119639];
+    	var gps = [base];
+    	for (i=0; i<10; i++) {
+    		gps.push([gps[i][0] + 0.0003*Math.random(), gps[i][1] + 0.0003*Math.random()]);
+    	}
+    </script>
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <div id="sidebar-wrapper">
+        	<div class="col-lg-12">
+        	<h4>Pathfeets</h4>
+
+        		<div class="col-offset-1 col-lg-11">
+        			<h5>{{event.title}}</h5>
+        			<center><small><b>{{ event.start|date:"Y-m-d H:m" }}<br>---<br>
+                    {{event.stop|date:"Y-m-d H:m" }}</b></small>
+        			"Currently live!"
+                    </center>
+        			<br><br>
+
+                    <h6>Search</h6>
+                    <input id="search" type="text" class="form-control" value="St Johns College" placeholder="Place or address...">
+                    <button style="margin-top:3px" id="search_btn" type="button" class="btn btn-sm btn-primary">Take me there</button>
+        			
+        		</div>
+        	</div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-12">
+                	    <div id='map'></div>
+                        <br>
+                        <a href="#menu-toggle" class="btn btn-default" id="menu-toggle">Toggle Menu</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="addModalLabel">Add Path Marker</h4>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+                <!--
+                <div class="col-md-4">
+                <a id="add_path_marker_btn" href="#">Path marker</a>
+                </div>
+                <div class="col-md-4">
+                <a id="add_poi_btn" href="#">Point of interest</a>
+                </div>
+                <div class="col-md-4">
+                <a id="add_circle_btn" href="#">Circle</a>
+                </div>
+                
+
+                <span style="margin:5px"></span>
+                -->
+
+                <div id="add_path_marker" class="col-md-12">
+                    <!--<h5>Add path marker</h5>-->
+                    <form id="add_path_marker_form">
+                      <div class="form-group">
+                        <label for="title">Title</label>
+                        <input id="path_marker_title" type="text" class="form-control" placeholder="Title">
+                      </div>
+                      <div style="overflow:hidden;">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="datetimepicker"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                      
+                    </form>
+                </div>
+
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button id="add_element_btn" type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu Toggle Script -->
+    <script>
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+
+    var planIcon = L.icon({
+        iconUrl: '/static/leaflet/images/marker-icon-gray.png',
+        iconRetinaUrl: '/static/leaflet/images/marker-icon-gray-2x.png',
+        shadowUrl:     '/static/leaflet/images/marker-shadow.png',
+        iconSize:    [25, 41],
+        iconAnchor:  [12, 41],
+        popupAnchor: [1, -34],
+        tooltipAnchor: [16, -28],
+        shadowSize:  [41, 41]
+    });
+
+    </script>
+
+    <script>
+		var tile = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw', {
+		    maxZoom: 19,
+		    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+		      '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+		      'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+		    id: 'mapbox.streets'
+	 	 });
+
+        var map = L.map('map', {"layers": [tile]});
+
+        // *** GPS LAYER *** //
+		var gps_path = L.polyline(gps, {color: "#3333dd"});
+        var current_pos_marker = L.marker(gps[gps.length - 1]);
+        var gps_layer = L.layerGroup([gps_path, current_pos_marker]);
+        map.addLayer(gps_layer);
+        current_pos_marker.bindPopup("<b>Current position</b><br>More info?")
+                       .openPopup();
+
+        // *** PLANNED PATH LAYER *** //
+        var planned_data = [];
+        var planned_poly_line = L.polyline([], {color: planned_path_color});
+        var planned_path = L.layerGroup([planned_poly_line]);
+        var planned_poly_line_id = planned_path.getLayerId(planned_poly_line);
+
+         {% for p in planned %}
+            var new_marker = L.marker([{{p.latitude}}, {{p.longitude}}], {icon : planIcon});
+            new_marker.addTo(planned_path);
+            var layer_id = planned_path.getLayerId(new_marker);
+
+            var marker_string = "";
+            {% if p.title|length %}
+                marker_string += "<b>{{ p.title }}</b> <br>";
+            {% endif %}
+            marker_string += '{{ p.timestamp|date:"Y-m-d H:m"  }}';
+            marker_string += "<br><small><a href=\"#\" onclick=\"delete_marker_layer(" + layer_id.toString() + ")\">Remove</a></small>"
+            new_marker.bindPopup(marker_string);
+
+            var d = new Date('{{ p.timestamp|date:"Y-m-d H:m:s"  }}');
+            planned_data.push({latlng:[{{p.latitude}}, {{p.longitude}}], id:layer_id, date: d});
+         {% endfor %}
+
+        if (planned_path.getLayers().length >= 2) {
+                map.addLayer(planned_path);
+        }
+
+        // *** LAYER CONTROLS *** //
+        var base = {
+            "Map": tile
+        };
+        var overlays = {
+            "Live position": gps_layer,
+            "Planned path": planned_path
+        };
+
+        L.control.layers(base, overlays, 
+                {"hideSingleBase":true, "collapsed":false}).addTo(map);
+        
+
+        // *** ZOOM MAP TO CORRECT LOCATION AND ZOOM LEVEL *** //
+		map.fitBounds(gps_path.getBounds());
+
+        // *** ADD TO MAP *** //
+        var add_to_map_popup = L.marker((0,0), {icon : planIcon});
+
+        function onMapClick(e) {
+            add_to_map_popup
+                .setLatLng(e.latlng)
+                .addTo(map);
+
+            $("#addModal").modal("show");
+        }
+
+        $('#addModal').on('hidden.bs.modal', function () {
+            add_to_map_popup.remove();
+        })
+
+        $(function () {
+            $('#datetimepicker').datetimepicker({
+                inline: true,
+                sideBySide: true,
+                format: "YYYY-MM-DD HH:mm",
+            });
+        });
+
+        map.on('click', onMapClick);
+
+        // Add path marker
+
+        function delete_marker_layer(id) {
+            marker = planned_path.removeLayer(id);
+
+            for (i=0; i<planned_data.length; i++) {
+                if (planned_data[i].id == id) {
+                    delete planned_data.splice(i, 1);
+                }
+            }
+
+            redraw_planned_path();
+        }
+
+        function redraw_planned_path(){
+            planned_data = planned_data.sort(function(a, b){return a.date-b.date});
+            plan_gps = [];
+            for (i=0; i<planned_data.length; i++) {
+                plan_gps.push(planned_data[i].latlng);
+            }
+            planned_poly_line = L.polyline(plan_gps, {color: planned_path_color});
+            planned_path.addLayer(planned_poly_line);
+            planned_path.removeLayer(planned_poly_line_id);
+            planned_poly_line_id = planned_path.getLayerId(planned_poly_line);
+        }
+        redraw_planned_path();
+
+        $("#add_element_btn").click(function(e) {
+            e.preventDefault();
+
+            latlng = add_to_map_popup.getLatLng();
+            var d = new Date();
+            var form_date = $('#datetimepicker').data().date + ":" + d.getSeconds().toString(); // add seconds for sorting purpose
+
+            var new_marker = L.marker(latlng, {icon : planIcon});
+            new_marker.addTo(planned_path);
+            var layer_id = planned_path.getLayerId(new_marker);
+
+            var marker_string = "";
+            if ($('#path_marker_title').val().length > 0) {
+                marker_string += "<b>" + $('#path_marker_title').val() + "</b> <br>";
+            }
+            marker_string += $('#datetimepicker').data().date;
+            marker_string += "<br><small><a href=\"#\" onclick=\"delete_marker_layer(" + layer_id.toString() + ")\">Remove</a></small>"
+            new_marker.bindPopup(marker_string);
+
+            var d = new Date($('#datetimepicker').data().date);
+            planned_data.push({latlng:latlng, id:layer_id, date: d});
+            redraw_planned_path();
+
+            map.addLayer(planned_path);
+
+            // Store in db
+            console.log(form_date);
+            $.post('/api/make_planned_pos/',
+                    {event_id : event_id,
+                     title : $('#path_marker_title').val(),
+                     timestamp : form_date,
+                     longitude : latlng.lng,
+                     latitude : latlng.lat })
+
+            // Clean up
+            $('#path_marker_title').val("");
+            $("#addModal").modal("hide");
+        });
+
+        $('#add_path_marker_form').on('keypress', function(e) {
+          var keyCode = e.keyCode || e.which;
+          if (keyCode === 13) { 
+            e.preventDefault();
+            $("#add_element_btn").click();
+            return false;
+          }
+        });
+
+        // Search
+        $("#search_btn").click(function() {
+            latlng = map.getCenter();
+            latlng_str = latlng.lat.toString() + "," + latlng.lng.toString();
+            console.log(latlng_str);
+
+            $.ajax({
+                 url:"https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+                 dataType: 'json',
+                 data : {"location":latlng_str,
+                         "keyword":$("#search").val(),
+                         "key": google_api_key,
+                         "radius":10000},
+                 jsonpCallback: "localJsonpCallback" 
+             });
+        });
+    </script>
+
+</body>
+</html>
