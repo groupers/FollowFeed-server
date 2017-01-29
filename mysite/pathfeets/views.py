@@ -59,4 +59,12 @@ def make_planned_pos(request):
                 longitude=data['longitude'], latitude=data['latitude'])
     planned_pos.save()
 
-    return HttpResponse("Success");
+    return HttpResponse(str(planned_pos.id));
+
+@csrf_exempt
+def delete_planned_pos(request):
+    data = request.POST
+    planned_pos = PlannedPosition(id=int(data['id']))
+    planned_pos.delete()
+
+    return HttpResponse("")
